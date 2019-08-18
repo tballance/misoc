@@ -4,6 +4,7 @@ RM ?= rm -rf
 PYTHON ?= python3
 
 CARGO_TRIPLE=$(subst or1k-linux,or1k-unknown-none,$(TRIPLE))
+CARGO_TRIPLE=$(subst arm-linux-gnueabihf,armv7-unknown-linux-gnueabihf,$(TRIPLE))
 
 ifeq ($(CLANG),1)
 CC_normal      := clang -target $(TRIPLE) -integrated-as
@@ -57,9 +58,14 @@ CXXFLAGS = $(COMMONFLAGS) -std=c++11 -I$(MISOC_DIRECTORY)/software/include/basec
 
 # Rust toolchain options
 RUSTOUT = cargo/$(CARGO_TRIPLE)/debug
-export RUSTFLAGS = -Ctarget-feature=+mul,+div,+ffl1,+cmov,+addc -Crelocation-model=static -Copt-level=s
 export CC_$(subst -,_,$(CARGO_TRIPLE)) = clang
 export CFLAGS_$(subst -,_,$(CARGO_TRIPLE)) = $(CFLAGS)
+
+ifeq ($(TRIPLE),arm-linux-gnueabihf)
+	export RUSTFLAGS = -Crelocation-model=static -Copt-level=s
+else
+	export RUSTFLAGS = -Ctarget-feature=+mul,+div,+ffl1,+cmov,+addc -Crelocation-model=static -Copt-level=s
+endif
 
 # Linker options
 LDFLAGS = --gc-sections -nostdlib -nodefaultlibs -L$(BUILDINC_DIRECTORY)
