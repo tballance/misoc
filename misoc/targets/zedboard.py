@@ -1,6 +1,7 @@
 
 from migen import *
 from migen.build.platforms import zedboard
+from misoc.integration.builder import *
 
 # Import from migen-axi and fix-up
 from migen_axi.integration.soc_core import SoCCore as AXISoCCore
@@ -41,6 +42,18 @@ class SoCCore(AXISoCCore):
     def get_constants(self):
         return self._constants
 
+from misoc.interconnect.csr import *
+
+class TestModule(Module, AutoCSR):
+    def __init__(self):
+
+        self.storage = CSRStorage(32, reset=0x12345678)
+
+        self.counter = CSRStatus(32)
+        counter = Signal(32)
+        self.sync += counter.eq(counter + 1)
+        self.comb += self.counter.status.eq(counter)
+
 
 class BaseSoC(SoCCore):
     def __init__(self):
@@ -52,8 +65,8 @@ class BaseSoC(SoCCore):
         self.clock_domains.cd_sys = ClockDomain()
         self.specials += Instance("BUFG", i_I=fclk0, o_O=self.cd_sys.clk)
 
-
-
+        self.submodules.test = TestModule()
+        self.csr_devices.append("test")
 
 
 def main():
