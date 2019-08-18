@@ -46,6 +46,7 @@ from misoc.interconnect.csr import *
 
 class TestModule(Module, AutoCSR):
     def __init__(self):
+        self.clock_domains.cd_sys = ClockDomain()
 
         self.storage = CSRStorage(32, reset=0x12345678)
 
@@ -67,6 +68,8 @@ class BaseSoC(SoCCore):
 
         self.submodules.test = TestModule()
         self.csr_devices.append("test")
+        
+        self.comb += self.test.cd_sys.clk.eq(self.cd_sys.clk)
 
 
 def main():
